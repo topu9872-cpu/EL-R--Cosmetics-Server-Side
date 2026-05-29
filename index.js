@@ -1,7 +1,7 @@
 require('dotenv').config()
 const express = require('express')
 const app = express()
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 
 const port = 5000;
@@ -22,8 +22,32 @@ async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
-        const database = client.db('ELÀRÀ-cosmetics');
-        const movies = database.collection('elara-products');
+        const db = client.db('ELÀRÀ-cosmetics');
+        const cosmeticsColection = db.collection('elara-products');
+
+        app.get('/products', async (req, res) => {
+            const result = await cosmeticsColection.find().toArray();
+            res.json(result)
+        })
+
+        app.get('/products', async (req, res) => {
+            const search = req.query.search || '';
+            const query = {
+                name: {
+                    $regex: search,
+                    $options: 'i'
+                }
+            }
+            const result = await cosmeticsColection.find(query).toArray()
+            res.json(result)
+        });
+
+        app.get('/products/:id', async (req, res) => {
+            const { id } = params;
+            const result = await cosmeticsColection.findOne({ _id: new ObjectId(id) });
+            res.json(result);
+        })
+
 
 
 
@@ -34,3 +58,11 @@ async function run() {
     }
 }
 run().catch(console.dir);
+
+app.get('/', (req, res) => {
+    res.send('Hello World!')
+})
+
+app.listen(port, () => {
+    console.log(`Example app listening on port ${port}`)
+})
