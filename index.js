@@ -23,28 +23,37 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
         const db = client.db('ELÀRÀ-cosmetics');
-        const cosmeticsColection = db.collection('elara-products');
+        const cosmeticsCollection = db.collection('elara-products');
 
-        app.get('/products', async (req, res) => {
-            const result = await cosmeticsColection.find().toArray();
-            res.json(result)
-        })
+       app.get('/products', async (req, res) => {
+  const search = req.query.search || "";
+  const page = parseInt(req.query.page) || 1;
+  const limit = 12;
 
-        app.get('/products', async (req, res) => {
-            const search = req.query.search || '';
-            const query = {
-                name: {
-                    $regex: search,
-                    $options: 'i'
-                }
-            }
-            const result = await cosmeticsColection.find(query).toArray()
-            res.json(result)
-        });
+  const query = search
+    ? { name: { $regex: search, $options: "i" } }
+    : {};
+
+  const skip = (page - 1) * limit;
+
+  const result = await cosmeticsCollection
+    .find(query)
+    .skip(skip)
+    .limit(limit)
+    .toArray();
+
+  const total = await cosmeticsCollection.countDocuments(query);
+
+  res.json({
+    data: result,
+    totalPages: Math.ceil(total / limit),
+    currentPage: page
+  });
+});
 
         app.get('/products/:id', async (req, res) => {
-            const { id } = params;
-            const result = await cosmeticsColection.findOne({ _id: new ObjectId(id) });
+            const { id } = req.params;
+            const result = await cosmeticsCollection.findOne({ _id: new ObjectId(id) });
             res.json(result);
         })
 
