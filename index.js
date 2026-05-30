@@ -24,6 +24,7 @@ async function run() {
         await client.connect();
         const db = client.db('ELÀRÀ-cosmetics');
         const cosmeticsCollection = db.collection('elara-products');
+        const cosmeticsBookingCollection = db.collection('elara-booking-cart');
 
        app.get('/products', async (req, res) => {
   const search = req.query.search || "";
@@ -57,6 +58,17 @@ async function run() {
             res.json(result);
         })
 
+        app.get('/products', async (req, res) => {
+            const result = await cosmeticsCollection.find().toArray();
+            res.json(result);
+        })
+// this is for booking
+
+app.post('/cart' ,async(req, res)=>{
+const query=req.body;
+const result=await cosmeticsBookingCollection.insertOne(query);
+res.json(result)
+})
 
 
 
